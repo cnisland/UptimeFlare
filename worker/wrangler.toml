@@ -6,4 +6,19 @@ compatibility_flags = [ "nodejs_compat" ]
 [[d1_databases]]
 binding = "UPTIMEFLARE_D1"
 database_name = "uptimeflare_d1"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "c286ace9-7057-44ab-8cc6-3903bca5bb04"
+
+[durable_objects]
+bindings = [
+  { name = "REMOTE_CHECKER_DO", class_name = "RemoteChecker" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RemoteChecker"]
+
+[observability]
+enabled = true
+[observability.logs]
+enabled = true
+invocation_logs = true
