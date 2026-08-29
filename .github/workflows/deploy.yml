@@ -40,7 +40,7 @@ jobs:
           cd worker
           npm install
 
-      - name: Build worker
+      - name: Build worker (for pages build verification)
         run: |
           cd worker
           npx wrangler deploy src/index.ts --outdir dist --dry-run
@@ -49,7 +49,7 @@ jobs:
         run: |
           npx @cloudflare/next-on-pages
 
-      - name: Create D1 database and tables
+      - name: Init D1 database
         run: |
           python3 deploy/init_d1.py
         env:
@@ -62,14 +62,6 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ steps.fetch_account_id.outputs.account_id }}
-          D1_ID: ${{ env.D1_ID }}
-
-      - name: Update worker wrangler.toml with D1 ID
-        run: |
-          sed -i "s/database_id = \"00000000-0000-0000-0000-000000000000\"/database_id = \"${D1_ID}\"/" worker/wrangler.toml
-          echo "Updated worker/wrangler.toml:"
-          cat worker/wrangler.toml
-        env:
           D1_ID: ${{ env.D1_ID }}
 
       - name: Deploy Worker
@@ -98,7 +90,7 @@ jobs:
             "https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/pages/projects/uptimeflare" \
             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             -H "Content-Type: application/json" \
-            -d "{\"deployment_configs\":{\"production\":{\"d1_databases\":{\"UPTIMEFLARE_D1\":{\"id\":\"${D1_ID}\"}},\"compatibility_date\":\"2025-04-02\",\"compatibility_flags\":[\"nodejs_compat\"]}}}")
+            -d "{\"deployment_configs\":{\"production\":{\"d1_databases\":{\"UPTIMEFLARE_D1\":{\"id\":\"${D1_ID}\"}},\"compatibility_date\":\"2025-04-02\",\"compatibility_flags\":[\"nodejs_compat\"]}}}" )
           echo "Pages config result: $(echo $RESP | jq '.success')"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
