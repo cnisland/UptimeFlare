@@ -1,0 +1,33 @@
+name: Deploy UptimeFlare to CF
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - name: Write wrangler.toml
+        run: |
+          cat > wrangler.toml << 'EOF'
+          name = "uptimeflare"
+          compatibility_date = "2025-04-02"
+          compatibility_flags = [ "nodejs_compat" ]
+          pages_build_output_dir = ".vercel/output/static"
+          [[d1_databases]]
+          binding = "UPTIMEFLARE_D1"
+          database_name = "uptimeflare_d1"
+          database_id = "7c85883f-4bcb-4aef-a58d-1e622ae8126d"
+          EOF
+      - run: npx @cloudflare/next-on-pages
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy .vercel/output/static --project-name=uptimeflare
+          wranglerVersion: "3.114.17"
